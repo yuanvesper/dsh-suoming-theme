@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Package / build output
+*.tgz
+dist/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local environment
+.env
+.env.*
+
+# Local character art (never commit; use profile assets or dev-local-art)
+assets/*
+!assets/README.md
+
+# Baseline audit v3.5.0 (sensitive/local artifacts)
+.env.*
+*.pem
+*.key
+*.p12
+credentials*
+secrets*
+*.local.*
+*.tmp
+*.bak
+*.orig
+*.swp
+*.swo
+.cache/
+.parcel-cache/
+.nyc_output/
+playwright-report/
+test-results/
+*.tsbuildinfo
+profile/
+suoming-theme-dev/

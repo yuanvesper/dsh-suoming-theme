@@ -1,0 +1,5 @@
+# 锁暝主题（Suoming theme）bundle patch
+# 插入一个 Host 侧空插件行；真正的主题与装饰由同包的 Client 模块负责。
+- insert:
+    - id: theme-suoming
+      name: '@local/dsh-theme-suoming'
