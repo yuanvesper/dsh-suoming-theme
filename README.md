@@ -83,11 +83,24 @@ suoming-theme/
 - 临时独立 DSH_HOME 中 `dsh plugin add` / `remove` 通过
 - 安装后 `dsh --profile reltest --dump-config` 能看到 `theme-suoming` 行
 
+**SM-REL-004 隔离运行时验证：**
+
+- 本地 tarball `pnpm pack` 成功，tarball 文件清单包含必要 bundle 文件
+- 临时独立 `DSH_HOME` 中 `dsh plugin add <tarball>` / `remove` 成功
+- `--dump-config` 能看到 `theme-suoming` 条目
+- 实际启动隔离 DSH Web GUI：
+  - 页面带有 `data-dsh-suoming`
+  - 场景层、右侧立绘层、旋转锁层存在
+  - 无 page error / console error
+  - 登录/开始使用弹窗阻止了设置页的视觉核对（设置入口检查为 PARTIAL）
+- 截图已采集：`docs/screenshots/runtime-verification.png`（图片层已隐藏，不含本地立绘/个人内容）
+
 **未验证：**
 
-- 未在全新、无本机 profile 的完整 Web GUI 中实际加载主题（NOT RUN）
-- 未验证 DSH 其他版本、其他操作系统、其他 Node/pnpm 版本
-- 未做正式性能测试 / FPS / 内存测试
+- GitHub 仓库 / tarball 的远程安装形式
+- DSH 其他版本、其他操作系统、其他 Node/pnpm 版本
+- 正式性能测试 / FPS / 内存测试
+- 完整设置页在登录后的视觉状态
 
 ## 安装
 
@@ -114,8 +127,17 @@ dsh plugin --profile desktop add "C:\path\to\suoming-theme"
 3. 刷新 DSH 页面；如 Client bundle 有缓存，完整重启 DSH；
 4. 打开 **设置 → 通用 → 锁暝主题**。
 
-> 安装命令依据：本机 `dsh plugin --help` 与临时独立 profile 实测。  
-> **GitHub / tarball / 远程安装形式尚未验证**，不要直接当作确定命令使用。
+### 从本地 tarball 安装（已验证）
+
+```bash
+pnpm pack
+dsh plugin --profile desktop add "<path-to>/local-dsh-theme-suoming-3.5.0.tgz"
+```
+
+SM-REL-004 在临时独立 `DSH_HOME` 中验证了 tarball add / dump-config / remove。
+
+> 安装命令依据：本机 `dsh plugin --help`、实际 tarball 安装与 `--dump-config`。  
+> **GitHub 远程仓库安装形式尚未验证**，不要直接当作确定命令使用。
 
 ### 手动安装（备选）
 
@@ -188,19 +210,21 @@ $DSH_HOME/profiles/<profile>/suoming-theme/assets/
 
 ## 截图
 
-截图采集：**NOT RUN**。
+隔离运行时验证截图：
 
-原因：当前环境包含本地人物立绘，无法确认可公开授权；为避免未授权素材进入仓库，本阶段未提交截图。需要项目所有者确认素材授权后，用**不含本地立绘**的安全界面截图补充。
+- `docs/screenshots/runtime-verification.png`
+- 采集环境：临时独立 `DSH_HOME` + 无头浏览器
+- 安全处理：截图前隐藏所有图片，不含本地立绘、个人路径、会话内容
 
-需要人工补充：
+仍需项目所有者补充/确认：
 
-| 截图 | 内容 | 要求 |
+| 截图 | 内容 | 状态 |
 |---|---|---|
-| 01-overview | 主界面 + 侧边栏 | 不含本地立绘 |
-| 02-composer | 输入区 / 聚焦态 | 不含本地立绘 |
-| 03-sidebar | 侧边栏人物/装饰 | 确认素材授权后再拍 |
-| 04-settings | 设置 → 通用 | 不含个人路径 |
-| 05-motion | 旋转锁/动效 | GIF 5–10 秒，可选 |
+| 01-overview | 主界面 + 侧边栏 | 待补 |
+| 02-composer | 输入区 / 聚焦态 | 待补 |
+| 03-sidebar | 侧边栏人物/装饰 | 需素材授权后补 |
+| 04-settings | 设置 → 通用 | 需登录后补 |
+| 05-motion | 旋转锁/动效 | 可选 GIF |
 
 ## 版本记录
 

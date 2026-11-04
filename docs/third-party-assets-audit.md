@@ -54,10 +54,11 @@
 
 | 类型 | 仓库内是否跟踪 | 来源/状态 |
 |---|---|---|
-| PNG/JPG/WebP/GIF | 否 | 无 |
+| PNG/JPG/WebP/GIF | 是（仅 `docs/screenshots/runtime-verification.png`） | 隔离运行时截图，图片层已隐藏；无官方素材 |
 | 字体文件 | 否 | 无 |
 | 音频/视频 | 否 | 无 |
 | 本地人物立绘 | 否（在 profile / `suoming-theme-dev`） | 不进入公开仓库；授权状态 **UNKNOWN** |
+| `docs/screenshots/runtime-verification.png` | 项目运行时截图 | 无本地立绘/个人路径；项目自身截图，许可状态随项目 LICENSE | **UNKNOWN** |
 
 公开包不包含位图。用户自备素材的版权与授权由用户自行确认。
 
