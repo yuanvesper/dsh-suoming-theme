@@ -17,7 +17,10 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "docs/ai-generated-assets.md",
+    "docs/third-party-assets-audit.md"
   ],
   "dsh": {
     "bundle": {

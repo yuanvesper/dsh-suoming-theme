@@ -38,8 +38,9 @@
 - 配置写入 DSH profile：`$DSH_HOME/profiles/<profile>/suoming-theme/config.json`
 
 ### 素材策略
-- 公开包不包含位图
+- 公开包不包含位图，也不包含两张官方立绘
 - 人物立绘由用户在本地 profile assets 中自备
+- 7 组 SVG 为 AI 根据文字描述生成；详见 [`docs/ai-generated-assets.md`](docs/ai-generated-assets.md)
 - 不得使用未授权官方素材；素材使用需用户自行确认授权
 - 缺失图片时主题仍可运行，人物层会回退/隐藏
 
@@ -172,17 +173,32 @@ Host 接口：
 - `PUT /suoming-config`
 - `GET /suoming-local-art/<whitelisted-file>`（本地素材只读路由）
 
-## 素材
+## 素材与本地立绘
 
-公开包**不含位图**。人物立绘、表情差分等由用户放在本地 profile：
+公开包**不含位图，也不包含两张官方立绘**。人物立绘、表情差分等由用户放在本地 profile：
 
 ```text
 $DSH_HOME/profiles/<profile>/suoming-theme/assets/
 ```
 
-详细说明见 [`assets/README.md`](assets/README.md)。
+支持的本地文件名（按主题代码的白名单）：
 
-**不要使用未经授权的官方原画、游戏提取素材或音频。** 本项目不提供、不推荐此类素材。
+```text
+char.jpg / char.png / char.webp
+side.jpg / side.png / side.webp
+portrait.png
+```
+
+也可通过环境变量 `SUOMING_LOCAL_ART` 指定一个本地素材目录，Host 只读路由会从该目录查找白名单文件。
+
+行为：
+- 主题默认启用角色区域；可在 **设置 → 通用 → 锁暝主题** 中关闭。
+- 立绘缺失、路径错误或文件损坏时，图片加载失败会自动移除对应图层，主题继续渲染背景、锁链、玄朱锁和设置界面。
+- 不会因立绘缺失而白屏或报错。
+
+用户自备素材的使用需自行确认授权。**不要使用未经授权的官方原画、游戏提取素材或音频。** 本项目不提供、不推荐此类素材。
+
+7 组 AI 生成 SVG 的说明见 [`docs/ai-generated-assets.md`](docs/ai-generated-assets.md)。
 
 ## 故障排查
 
@@ -232,23 +248,24 @@ $DSH_HOME/profiles/<profile>/suoming-theme/assets/
 
 ## 许可与授权范围
 
-本项目的**代码和项目所有者有权授权的原创内容**采用 **MIT License**：
+本项目的**代码和 AI 生成的原创 SVG**采用 **MIT License**，以项目所有者有权授权的范围为限：
 
 - 许可证正文：[`LICENSE`](LICENSE)
 - 版权声明：`Copyright (c) 2026 zhouke`
+- AI 生成 SVG 说明：[`docs/ai-generated-assets.md`](docs/ai-generated-assets.md)
 
-> **MIT 的覆盖范围仅限于项目所有者有权授权的代码和原创内容。**
+> **MIT 的覆盖范围仅限于项目所有者有权授权的代码和 AI 生成的原创 SVG。**
 
 以下内容**不在本项目 MIT 许可证的授权范围内**，也不因项目采用 MIT 而自动获得授权：
 
 1. 《鸣潮》官方台词、角色设定、名称及其他官方 IP 内容；
-2. 本地人物立绘、表情差分及其他未经确认的美术素材；
-3. 来源或原创性尚未确认的部分 SVG（不列具体文件名，统一记为待确认）；
+2. 两张从《鸣潮》游戏/官方渠道提取的官方立绘；
+3. 用户自备的人物立绘、表情差分及其他未经确认的美术素材；
 4. 任何其他第三方内容。
 
 非官方声明只说明本项目与官方无隶属关系，**不等于获得权利人授权**；MIT 许可证也不会改变官方素材、角色名称、商标或其他第三方内容的授权状态。
 
-公开包不包含本地立绘、游戏提取素材或未授权音频。用户自备素材的使用，需由用户自行确认授权。
+公开包不包含官方立绘、游戏提取素材或未授权音频。用户自备素材的使用，需由用户自行确认授权。
 
 本说明为授权范围澄清，不构成法律意见，也不扩大 MIT 正文的条款。
 
@@ -264,5 +281,6 @@ $DSH_HOME/profiles/<profile>/suoming-theme/assets/
 
 - 贡献流程：[`CONTRIBUTING.md`](CONTRIBUTING.md)
 - 安全问题报告：[`SECURITY.md`](SECURITY.md)
+- AI 生成 SVG 说明：[`docs/ai-generated-assets.md`](docs/ai-generated-assets.md)
 - 第三方素材/引用说明：[`docs/third-party-assets-audit.md`](docs/third-party-assets-audit.md)
 - 开源准备度审计：[`docs/open-source-readiness-audit.md`](docs/open-source-readiness-audit.md)
