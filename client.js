@@ -823,6 +823,8 @@ window.__ModuleLoader__.load({
         'html[data-dsh-suoming] [data-conversation-scroll] pre{font-size:calc(var(--dsh-content-font-size,14px) - 1.5px);line-height:1.6}',
         'html[data-dsh-suoming] [data-conversation-scroll] :where(:not(pre) > code){background:var(--dsw-alias-markdown-inline-code);border:1px solid var(--dsw-alias-border-l1);border-radius:4px;padding:.1em .32em;font-size:.92em}',
         'html[data-dsh-suoming] [data-conversation-scroll] pre code{background:transparent;border:0;padding:0;font-size:inherit}',
+        /* 宿主 outline 按钮（含权限审批的“拒绝”）使用可见的旧金边界，避免在深色卡片上变成裸文字 */
+        'html[data-dsh-suoming]{--dsh-button-outline-color:var(--dsw-alias-state-warn-primary)}',
         /* focus-visible：键盘导航才出现，2px accent、offset -1px；指针聚焦不画环 */
         'html[data-dsh-suoming] :where(a,button,[role="button"],[role="tab"],[role="menuitem"],input,textarea,select,summary,[tabindex]):focus-visible{outline:2px solid var(--dsw-alias-state-business-primary);outline-offset:-1px}',
         'html[data-dsh-suoming] :where(a,button,[role="button"],[role="tab"],[role="menuitem"],input,textarea,select,summary,[tabindex]):focus:not(:focus-visible){outline:none}',
