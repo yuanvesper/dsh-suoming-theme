@@ -97,10 +97,16 @@ suoming-theme/
   - 登录/开始使用弹窗阻止了设置页的视觉核对（设置入口检查为 PARTIAL）
 - 截图已采集：`docs/screenshots/runtime-verification.png`（图片层已隐藏，不含本地立绘/个人内容）
 
+**SM-REL-009 公开发布后实测（2026-11-11，v3.5.2）：**
+
+- GitHub 远程安装：临时独立 `DSH_HOME` 中 `dsh plugin --profile ghtest add "git+https://github.com/yuanvesper/dsh-suoming-theme.git#37a7947…"` 成功（pnpm 4.7s，`+ dsh-suoming-theme 3.5.2`），`--dump-config` 输出 `- id: theme-suoming / name: dsh-suoming-theme`
+- 安装后包内文件 11 个，**位图 0 个**
+- `market/index.json` 经宿主校验器 `@deepseek-ai/dsh-plugin-market-index` 的 `parseMarketIndex` 校验通过；raw 地址匿名可读（HTTP 200），字节与仓库内文件一致
+
 **未验证：**
 
-- GitHub 远程安装（`git+https://…`）——发布后实测，结果会更新本节
-- DSH 内置 Discover 通过 `market/index.json` 搜索与安装
+- DSH 内置 Discover 的实际搜索与安装（索引格式已校验，但需要先在本机 Discover 添加索引源后人工确认列表项与安装结果）
+- 默认分支安装形式（命令不带 commit）
 - DSH 其他版本、其他操作系统、其他 Node/pnpm 版本
 - 正式性能测试 / FPS / 内存测试
 - 完整设置页在登录后的视觉状态
@@ -124,7 +130,7 @@ dsh plugin --profile desktop add "git+https://github.com/yuanvesper/dsh-suoming-
 dsh plugin --profile desktop add "git+https://github.com/yuanvesper/dsh-suoming-theme.git#<40 位 commit>"
 ```
 
-> 验证状态见下文「兼容性与验证」。远程安装一旦实测通过，会在这里标注结果。
+> 实测（2026-11-11，v3.5.2）：固定 commit 形式已在临时独立 `DSH_HOME` 中安装成功，`--dump-config` 可见 `theme-suoming`。默认分支形式未实测。
 
 ### 从本地目录安装（已验证）
 
@@ -154,7 +160,7 @@ dsh plugin --profile desktop add "<path-to>/dsh-suoming-theme-3.5.2.tgz"
 SM-REL-004 在临时独立 `DSH_HOME` 中验证了 tarball add / dump-config / remove。
 
 > 安装命令依据：本机 `dsh plugin --help`、实际 tarball 安装与 `--dump-config`。  
-> **GitHub 远程仓库安装形式尚未验证**，不要直接当作确定命令使用。
+> GitHub 远程安装已在 v3.5.2 实测通过（见上文「从 GitHub 安装」的实测说明）。
 
 ### 手动安装（备选）
 
@@ -174,7 +180,7 @@ dsh plugin --profile desktop remove dsh-suoming-theme
 
 **① 第三方插件目录**（[dshmarketplace.dev](https://dshmarketplace.dev)）
 
-本仓库带有 GitHub topic `dsh-plugin`，该目录会按 topic 自动同步收录，可直接按仓库名或 “锁暝 / suoming” 搜索。
+本仓库已添加 GitHub topic `dsh-plugin`（以及 `deepseek-harness`、`dsh-theme`、`wuthering-waves`、`ui-skin` 等），该目录会按 topic 自动同步收录，可直接按仓库名或 “锁暝 / suoming” 搜索。收录是否已经生效取决于该目录的同步与审核节奏，本 README 不保证它已出现在列表中。
 
 **② DSH 内置 Discover（实验功能）**
 
@@ -186,7 +192,7 @@ https://raw.githubusercontent.com/yuanvesper/dsh-suoming-theme/main/market/index
 
 添加方式：**设置 → 插件市场 → Discover → Add index source**，粘贴上面的 URL 后保存。索引文件遵循 DSH plugin index format 1，内容见 [`market/index.json`](market/index.json)。
 
-> 收录与安装状态以各渠道实际显示为准；本 README 不声称已通过审核收录。
+> 收录与安装状态以各渠道实际显示为准；本 README 不声称已通过审核收录。发布版本与变更说明见 [Releases](https://github.com/yuanvesper/dsh-suoming-theme/releases)。
 
 ## 配置
 
