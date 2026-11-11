@@ -19,12 +19,12 @@
  * 代码生成。切换主题时令牌由 ui-layout 即时应用到 document.body，无需刷新。
  */
 window.__ModuleLoader__.load({
-  id: '@local/dsh-theme-suoming',
+  id: 'dsh-suoming-theme',
   factory: (require) => {
     const React = require('react');
     const h = React.createElement;
 
-    const PKG = '@local/dsh-theme-suoming';
+    const PKG = 'dsh-suoming-theme';
     const THEME_ID = 'suoming';
     const NS = 'settings.suoming';
     const PREF_COOKIE = 'dsh_suoming_theme';

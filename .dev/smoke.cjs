@@ -111,7 +111,7 @@ vm.runInThisContext(source, { filename: 'client.js' });
 
 const loaded = global.__loaded;
 const checks = [];
-checks.push(['client module id', !!loaded && loaded.id === '@local/dsh-theme-suoming']);
+checks.push(['client module id', !!loaded && loaded.id === 'dsh-suoming-theme']);
 const face = loaded.factory(() => ({}));
 checks.push(['inject face', Array.isArray(face.inject) && face.inject.includes('slots') && face.inject.includes('theme')]);
 checks.push(['apply exported', typeof face.apply === 'function']);

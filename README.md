@@ -4,8 +4,9 @@
 
 > **非官方同人项目。** 本项目是社区创作的第三方 DSH 主题，与《鸣潮》、库洛游戏及相关官方无隶属、授权或背书关系。游戏名称、角色名称及相关知识产权归其各自权利人所有。
 
-- 当前版本：**v3.5.0**
-- 包名：`@local/dsh-theme-suoming`
+- 当前版本：**v3.5.2**
+- 包名：`dsh-suoming-theme`
+- 仓库：<https://github.com/yuanvesper/dsh-suoming-theme>
 - 形态：DSH bundle（Host + Client 插件）
 - 公开包：**不包含任何图片、音频、视频或官方素材**
 
@@ -63,7 +64,7 @@ suoming-theme/
   .dev/
 ```
 
-`package.json` 的 `dsh.bundle.patch` 指向 `./cordis.patch.yml`；`files` 包含 `index.js`、`client.js`、`cordis.patch.yml`、`locale/*.json`、`icon.svg`、`README.md`。`cordis.patch.yml` 使用包名 `@local/dsh-theme-suoming` 引用插件。
+`package.json` 的 `dsh.bundle.patch` 指向 `./cordis.patch.yml`；`files` 包含 `index.js`、`client.js`、`cordis.patch.yml`、`locale/*.json`、`icon.svg`、`README.md`。`cordis.patch.yml` 使用包名 `dsh-suoming-theme` 引用插件。
 
 ## 兼容性与验证
 
@@ -98,7 +99,8 @@ suoming-theme/
 
 **未验证：**
 
-- GitHub 仓库 / tarball 的远程安装形式
+- GitHub 远程安装（`git+https://…`）——发布后实测，结果会更新本节
+- DSH 内置 Discover 通过 `market/index.json` 搜索与安装
 - DSH 其他版本、其他操作系统、其他 Node/pnpm 版本
 - 正式性能测试 / FPS / 内存测试
 - 完整设置页在登录后的视觉状态
@@ -109,6 +111,20 @@ suoming-theme/
 - 已安装 DeepSeek Harness，能运行 `dsh` CLI
 - 已有一个 DSH profile（下文以 `desktop` 为例）
 - Node.js 与 pnpm 可用（DSH CLI 会转发给 pnpm）
+
+### 从 GitHub 安装
+
+```bash
+dsh plugin --profile desktop add "git+https://github.com/yuanvesper/dsh-suoming-theme.git"
+```
+
+固定到某个提交（推荐，避免后续改动导致行为漂移）：
+
+```bash
+dsh plugin --profile desktop add "git+https://github.com/yuanvesper/dsh-suoming-theme.git#<40 位 commit>"
+```
+
+> 验证状态见下文「兼容性与验证」。远程安装一旦实测通过，会在这里标注结果。
 
 ### 从本地目录安装（已验证）
 
@@ -123,7 +139,7 @@ dsh plugin --profile desktop add "C:\path\to\suoming-theme"
 ```
 
 安装后：
-1. 确认 profile 的 `package.json` 中 `@local/dsh-theme-suoming` 已加入；
+1. 确认 profile 的 `package.json` 中 `dsh-suoming-theme` 已加入；
 2. 确认 `cordis.patch.yml` 中 `theme-suoming` 行存在且启用；
 3. 刷新 DSH 页面；如 Client bundle 有缓存，完整重启 DSH；
 4. 打开 **设置 → 通用 → 锁暝主题**。
@@ -132,7 +148,7 @@ dsh plugin --profile desktop add "C:\path\to\suoming-theme"
 
 ```bash
 pnpm pack
-dsh plugin --profile desktop add "<path-to>/local-dsh-theme-suoming-3.5.0.tgz"
+dsh plugin --profile desktop add "<path-to>/dsh-suoming-theme-3.5.2.tgz"
 ```
 
 SM-REL-004 在临时独立 `DSH_HOME` 中验证了 tarball add / dump-config / remove。
@@ -147,10 +163,30 @@ SM-REL-004 在临时独立 `DSH_HOME` 中验证了 tarball add / dump-config / r
 ## 卸载
 
 ```bash
-dsh plugin --profile desktop remove @local/dsh-theme-suoming
+dsh plugin --profile desktop remove dsh-suoming-theme
 ```
 
 若插件管理器仍显示启用行，检查并删除 profile `cordis.patch.yml` 中对应的 `theme-suoming` 行，然后刷新/重启 DSH。
+
+## 在 DSH 插件市场找到它
+
+有两个互相独立的渠道，互不替代：
+
+**① 第三方插件目录**（[dshmarketplace.dev](https://dshmarketplace.dev)）
+
+本仓库带有 GitHub topic `dsh-plugin`，该目录会按 topic 自动同步收录，可直接按仓库名或 “锁暝 / suoming” 搜索。
+
+**② DSH 内置 Discover（实验功能）**
+
+DSH 出厂**不带任何索引源**，需要手动添加本仓库的索引文件：
+
+```text
+https://raw.githubusercontent.com/yuanvesper/dsh-suoming-theme/main/market/index.json
+```
+
+添加方式：**设置 → 插件市场 → Discover → Add index source**，粘贴上面的 URL 后保存。索引文件遵循 DSH plugin index format 1，内容见 [`market/index.json`](market/index.json)。
+
+> 收录与安装状态以各渠道实际显示为准；本 README 不声称已通过审核收录。
 
 ## 配置
 
@@ -221,7 +257,7 @@ portrait.png
 
 ### 插件管理器重新安装后失效
 插件管理器可能重写 profile 的 bundle/patch。重新确认：
-- `dsh.profile.bundles` 包含 `@local/dsh-theme-suoming`
+- `dsh.profile.bundles` 包含 `dsh-suoming-theme`
 - `cordis.patch.yml` 只有一条启用的 `theme-suoming` 行
 
 ## 截图
@@ -284,3 +320,23 @@ portrait.png
 - AI 生成 SVG 说明：[`docs/ai-generated-assets.md`](docs/ai-generated-assets.md)
 - 第三方素材/引用说明：[`docs/third-party-assets-audit.md`](docs/third-party-assets-audit.md)
 - 开源准备度审计：[`docs/open-source-readiness-audit.md`](docs/open-source-readiness-audit.md)
+
+## 免责声明与权利声明
+
+### 项目性质
+
+本项目是第三方社区项目，与库洛游戏及《鸣潮》官方无关联，也未获得官方授权或背书。本项目仅为个人、非商业性质的主题插件创作。
+
+本项目中的原创代码、原创设计及其他内容，分别按照各自的适用许可进行管理：代码与 AI 生成的原创 SVG 采用 MIT License（见上文「许可与授权范围」与 [`LICENSE`](LICENSE)）；角色名称、设定用语等其他内容仍归各自权利人所有，不在本项目可授权范围内。
+
+### 知识产权归属
+
+游戏角色、名称、商标、美术作品及其他第三方知识产权，仍归各自权利人所有。本项目不对上述内容主张任何权利，也不会因为本项目采用 MIT 许可证而改变其授权状态。
+
+### 知识产权与删除请求
+
+本项目为非官方第三方社区项目。如果您是相关权利人，认为本项目中的某项内容侵犯了您的合法权益，请通过本仓库的 Issues 或仓库公开的联系渠道告知我们，并尽可能提供相关内容的位置及权利证明。
+
+我们会在收到合理的权利通知后及时核查；如确认存在问题，将及时修改、替换、删除相关内容，并在必要时暂停相关发布。
+
+本声明不构成任何第三方知识产权的授权，也不改变相关权利人的合法权利。
