@@ -1,0 +1,98 @@
+{
+  "format": 1,
+  "title": {
+    "en": "Suoming Theme",
+    "zh": "锁暝主题"
+  },
+  "description": {
+    "en": "Wuthering Waves Suoming style theme bundle for the DeepSeek Harness Web GUI.",
+    "zh": "《鸣潮》锁暝风格的 DeepSeek Harness Web GUI 主题 bundle。"
+  },
+  "metadata": {
+    "categories": {
+      "theme": {
+        "title": {
+          "en": "Theme",
+          "zh": "主题"
+        }
+      }
+    },
+    "labels": {
+      "wuthering-waves": {
+        "title": {
+          "en": "Wuthering Waves",
+          "zh": "鸣潮"
+        }
+      },
+      "dark": {
+        "title": {
+          "en": "Dark",
+          "zh": "暗色"
+        }
+      },
+      "ui-skin": {
+        "title": {
+          "en": "UI skin",
+          "zh": "界面皮肤"
+        }
+      }
+    },
+    "sortKeys": {
+      "updated": {
+        "title": {
+          "en": "Updated",
+          "zh": "更新时间"
+        },
+        "order": "desc"
+      }
+    }
+  },
+  "plugins": [
+    {
+      "name": "dsh-suoming-theme",
+      "title": {
+        "en": "Suoming Theme",
+        "zh": "锁暝主题"
+      },
+      "description": {
+        "en": "Third-party DSH theme inspired by Suoming from Wuthering Waves: ink-black and crimson palette, old-gold filigree, rotating lock ornament, sidebar portrait, character stage and settings persistence.",
+        "zh": "《鸣潮》锁暝风格的第三方 DSH 主题：墨黑与绯红配色、旧金锁纹、旋转玄朱锁、侧边栏立绘、角色舞台与设置持久化。"
+      },
+      "icon": "icon.svg",
+      "author": "yuanvesper",
+      "homepage": "https://github.com/yuanvesper/dsh-suoming-theme#readme",
+      "repository": {
+        "url": "https://github.com/yuanvesper/dsh-suoming-theme"
+      },
+      "metadata": {
+        "category": "theme",
+        "keywords": [
+          "dsh-plugin",
+          "deepseek-harness",
+          "theme",
+          "wuthering-waves",
+          "suoming"
+        ],
+        "labels": [
+          "wuthering-waves",
+          "dark",
+          "ui-skin"
+        ],
+        "sortKeys": {
+          "updated": 1794410443
+        }
+      },
+      "versions": [
+        {
+          "version": "3.5.2",
+          "publishTimestamp": 1794410443,
+          "source": {
+            "type": "git",
+            "url": "https://github.com/yuanvesper/dsh-suoming-theme",
+            "commit": "37a79472675a42ee4df5fc6582adbb5a55aadbd8"
+          }
+        }
+      ]
+    }
+  ]
+}
