@@ -27,10 +27,9 @@
   - 对比度约 **7.92:1**。
 - 拒绝文字：骨白 `#e9dfd5` 对卡片背景约 **13.51:1**；文字可读，但按钮边界弱。
 
-### 修复
+### 修复（第一次尝试无效，已更正）
 
-文件：`client.js`  
-新增 CSS 变量：
+**第一次尝试（无效）**：把宿主变量声明在 `html` 上：
 
 ```css
 html[data-dsh-suoming] {
@@ -38,20 +37,33 @@ html[data-dsh-suoming] {
 }
 ```
 
-- 使用主题已有旧金变量 `--dsw-alias-state-warn-primary`（`#b6a289`）。
+- 失效原因：主题的设计令牌 `--dsw-alias-*` 全部声明在 **body**（`buildTokenCSS()` 的两个选择器都以 `body` 结尾），`html` 上并不存在 `--dsw-alias-state-warn-primary`。
+- 自定义属性里的 `var()` 在**声明所在元素**上求值；在 `html` 上该引用无法解析，`--dsh-button-outline-color` 变成计算期无效值，宿主按钮的 `var(--dsh-button-outline-color, var(--dsw-alias-border-l3))` 直接回退到 `border-l3`。
+- 实测：`getComputedStyle(拒绝按钮).boxShadow` = `rgba(83, 96, 113, 0.48) 0 0 0 0.5px inset` —— 与修复前完全一致，等于没有修。
+
+**当前修复（有效）**：改为与令牌同层，声明在 `body`：
+
+```css
+html[data-dsh-suoming] body {
+  --dsh-button-outline-color: var(--dsw-alias-state-warn-primary);
+}
+```
+
+- `--dsw-alias-state-warn-primary`（`#b6a289`）与这条声明在同一个元素上，`var()` 可以正常解析，并被按钮继承。
 - 仅影响宿主 outline 按钮的边界，不改变按钮文字、权限流程或同意/拒绝语义。
 - 128 个 design tokens 结构未改；新增的是宿主组件变量，不是第 129 个主题 token。
 
-### 修复后（宿主 CSS + 主题变量的静态复现）
+### 修复后（Chrome 157 headless 实测计算样式）
 
-| 元素 | 颜色/边界 | 对比度 |
+| 元素 | 颜色/边界 | 对卡片 `#17181b` 对比度 |
 |---|---|---|
-| 拒绝按钮文字 | 骨白 `#e9dfd5` / 卡片 `#17181b` | **13.51:1** |
-| 拒绝按钮边界（修复前） | 合成 `rgb(52,59,68)` / 卡片 | **1.57:1** |
-| 拒绝按钮边界（修复后） | 旧金 `#b6a289` / 卡片 | **7.92:1** |
-| 允许一次/始终允许 | 旧金 `#b6a289` / 深色 `#0d0c0e` | **7.92:1** |
+| 拒绝按钮文字 | 骨白 `#e9dfd5` | **13.51:1** |
+| 拒绝按钮边界（旧 html 写法） | 回退 `rgba(83,96,113,.48)` → 合成 `rgb(52,59,68)` | **1.57:1** |
+| 拒绝按钮边界（现 body 写法） | 旧金 `rgb(182,162,137)` | **7.32:1**（实测 7.2） |
+| 允许一次/始终允许 | 旧金 `#b6a289` / 深色 `#0d0c0e` | **8.00:1**（实测 7.92） |
 
-- 对比度来自宿主 CSS 与主题 token 的实际计算；静态复现非实际弹窗截图。
+- 对比度来自宿主 CSS + 主题 token 的真实计算样式，非实际弹窗截图。
+- 旧的 `7.92:1` 是对 `bg-base #0d0c0e` 算的；对审批卡片实际底色 `#17181b` 是 7.32:1。两个数都保留，避免误导。
 - hover/active/focus-visible/disabled 仍由宿主 Button 既有 CSS 提供；未改权限逻辑。
 - 是否改变授权语义：**否**。
 
@@ -112,7 +124,8 @@ html[data-dsh-suoming] {
 
 | 编号 | 问题 | 严重程度 | 状态 | 证据 |
 |---|---|---|---|---|
-| P0-1 | 权限审批拒绝按钮 outline 在深色卡片上边界对比度约 1.57:1，按钮边界不可辨认 | P0 | **已修**（`--dsh-button-outline-color`） | 宿主 CSS + 静态复现 |
+| P0-1 | 权限审批拒绝按钮 outline 在深色卡片上边界对比度约 1.57:1，按钮边界不可辨认 | P0 | **已修**（`--dsh-button-outline-color` 改到 body 作用域） | 宿主 CSS + Chrome 计算样式 |
+| P0-2 | 第一次修复把变量声明在 `html` 上，令牌在 `body`，`var()` 无法解析 → 实际未生效（仍 1.57:1） | P0 | **已修**（本轮更正作用域） | Chrome 计算样式：`rgba(83,96,113,.48)` |
 | P1-1 | 有“始终允许”时，宿主把“允许一次”和“拒绝”都渲染为 outline；除边界外无额外语义样式 | P1 | **未修**（宿主原生，无受支持的按按钮语义 token） | 审批组件源码 |
 | P1-2 | 实际权限请求弹窗未在当前环境触发，修复后实际弹窗未做真实点击回归 | P1 | **NOT RUN** | 无安全触发条件 |
 | P2-1 | 设置页保存/取消/重置、窄窗口、浅色模式未实测 | P2 | **NOT RUN** | 环境/隐私限制 |
@@ -135,24 +148,25 @@ html[data-dsh-suoming] {
 
 | 文件 | 改动说明 |
 |---|---|
-| `client.js` | 在主题 CSS 层设置 `--dsh-button-outline-color: var(--dsw-alias-state-warn-primary)`；不改 JS 业务逻辑 |
-| `docs/ui-permission-fix-report.md` | 本报告 |
+| `client.js` | `--dsh-button-outline-color` 从 `html[data-dsh-suoming]` 移到 `html[data-dsh-suoming] body`；不改 JS 业务逻辑 |
+| `docs/ui-permission-fix-report.md` | 本报告（更正第一次无效结论） |
 
 diff 摘要：
-- 1 行 CSS 变量新增；
+- 1 行 CSS 变量的作用域更正；
 - 128 tokens 未改；
-- 无 DOM 轮询、MutationObserver、自动点击、权限流程修改。
+- 权限弹窗相关：无 DOM 轮询、无自动点击、不修改权限流程。
 
 ## 7. 自动化测试结果
 
 | 测试项 | 命令 | 结果 | 说明 |
 |---|---|---|---|
 | 语法 | `node --check client.js` | PASS | 实际运行 |
-| smoke | `node .dev/smoke.cjs` | PASS | 128 tokens；stylesheet 74,605 bytes |
+| smoke | `node .dev/smoke.cjs` | PASS | 128 tokens；stylesheet 75,039 bytes |
 | render | `SUOMING_REACT_DIR=... node .dev/render.cjs` | PASS | 实际运行 |
 | scene-runtime | `node .dev/scene-runtime.cjs` | PASS | 22/22 |
 | host-smoke | `node .dev/host-smoke.mjs` | PASS | 16/16 |
-| 静态宿主 CSS 对比度 | Chrome headless + 审批 DOM | PASS | 修复后 outline 7.92:1 |
+| overlay-guard | `node .dev/overlay-guard.cjs` | PASS | 4/4（图层裸图泄漏回归，见 `docs/ui-overlay-leak-fix.md`） |
+| CSS 变量作用域实测 | Chrome 157 headless + 计算样式 | PASS | html 写法回退 `rgba(83,96,113,.48)`；body 写法为 `rgb(182,162,137)` |
 
 ## 8. 实际 GUI 验证结果
 
@@ -188,4 +202,5 @@ diff 摘要：
 - 是否改变权限业务逻辑：**否**
 - 是否伪造测试/截图：**否**
 - 是否引入不必要依赖/永久 will-change/大面积 backdrop-filter：**否**
-- 是否使用全局 DOM 轮询/MutationObserver/自动点击：**否**
+- 是否使用全局 DOM 轮询/自动点击：**否**
+- 是否使用 MutationObserver：**是，但与本弹窗无关** —— 仅监听 `document.documentElement` 上的 `data-dsh-suoming` 属性，在宿主重绘抹掉主题属性时自愈重设，防止注入图层退化成未样式化的裸图（见 `docs/ui-overlay-leak-fix.md`）。不读取、不修改任何权限弹窗 DOM。

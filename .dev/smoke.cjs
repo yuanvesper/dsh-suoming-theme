@@ -156,10 +156,14 @@ checks.push(['theme row component', !!rowReg && typeof rowReg.Component === 'fun
 checks.push(['quote component', !!quoteReg && typeof quoteReg.Component === 'function']);
 checks.push(['stylesheet injected', styles.length === 1 && styles[0].textContent.length > 1000]);
 const css = styles[0] ? styles[0].textContent : '';
+/* 开发辅助：需要把真实样式表交给浏览器做视觉回归时，用 SUOMING_DUMP_CSS 指定输出路径。 */
+if (process.env.SUOMING_DUMP_CSS) {
+  fs.writeFileSync(process.env.SUOMING_DUMP_CSS, css, 'utf8');
+}
 checks.push(['css braces balanced', (css.match(/\{/g) || []).length === (css.match(/\}/g) || []).length]);
 checks.push(['decoration scoped', css.includes('html[data-dsh-suoming]') && css.includes('[data-slot="sidebar"]')]);
 checks.push(['fallback token layer', css.includes('html[data-dsh-suoming] body[data-dsh-suoming]{--dsw-alias-bg-base:#0d0c0e;')]);
-checks.push(['build marker token', tokens['--dsh-suoming-build'] === '3.5.0']);
+checks.push(['build marker token', tokens['--dsh-suoming-build'] === '3.5.1']);
 checks.push(['chain texture present', css.includes('data:image/svg+xml')]);
 checks.push(['row styles present', css.includes('.dsh-suoming-row')]);
 checks.push(['quote styles present', css.includes('.dsh-suoming-quote')]);

@@ -380,7 +380,7 @@ window.__ModuleLoader__.load({
       '--dsh-suoming-accent-soft': tintVar('--dsw-alias-state-business-primary', P.inkBright, 32),
 
       /* 构建标记与 color-mix 诊断（仅名称可被运行时检查） */
-      '--dsh-suoming-build': '3.5.0',
+      '--dsh-suoming-build': '3.5.1',
       ...(CAN_COLOR_MIX
         ? { '--dsh-suoming-mode-color-mix': '1' }
         : { '--dsh-suoming-mode-rgba': '1' }),
@@ -824,7 +824,8 @@ window.__ModuleLoader__.load({
         'html[data-dsh-suoming] [data-conversation-scroll] :where(:not(pre) > code){background:var(--dsw-alias-markdown-inline-code);border:1px solid var(--dsw-alias-border-l1);border-radius:4px;padding:.1em .32em;font-size:.92em}',
         'html[data-dsh-suoming] [data-conversation-scroll] pre code{background:transparent;border:0;padding:0;font-size:inherit}',
         /* 宿主 outline 按钮（含权限审批的“拒绝”）使用可见的旧金边界，避免在深色卡片上变成裸文字 */
-        'html[data-dsh-suoming]{--dsh-button-outline-color:var(--dsw-alias-state-warn-primary)}',
+        /* 必须与令牌同层（body）声明：html 上没有 --dsw-* 令牌，写在 html 会让 var() 失效并回退到低对比度边界 */
+        'html[data-dsh-suoming] body{--dsh-button-outline-color:var(--dsw-alias-state-warn-primary)}',
         /* focus-visible：键盘导航才出现，2px accent、offset -1px；指针聚焦不画环 */
         'html[data-dsh-suoming] :where(a,button,[role="button"],[role="tab"],[role="menuitem"],input,textarea,select,summary,[tabindex]):focus-visible{outline:2px solid var(--dsw-alias-state-business-primary);outline-offset:-1px}',
         'html[data-dsh-suoming] :where(a,button,[role="button"],[role="tab"],[role="menuitem"],input,textarea,select,summary,[tabindex]):focus:not(:focus-visible){outline:none}',
@@ -982,6 +983,17 @@ window.__ModuleLoader__.load({
         '@media (max-width:1100px){html[data-dsh-suoming] .dsh-suoming-l3{display:none}}',
         '@media (max-width:900px){html[data-dsh-suoming] .dsh-suoming-l2,html[data-dsh-suoming] .dsh-suoming-l3{display:none}html[data-dsh-suoming] .dsh-suoming-l1{transform:none;transition:none}html[data-dsh-suoming] .dsh-suoming-l1-fog{animation:none}}',
         '@media (prefers-reduced-motion:reduce){html[data-dsh-suoming] .dsh-suoming-global-image,html[data-dsh-suoming] .dsh-suoming-global-chain,html[data-dsh-suoming] .dsh-suoming-character-image,html[data-dsh-suoming] .dsh-suoming-l0-up,html[data-dsh-suoming] .dsh-suoming-l0-breath,html[data-dsh-suoming] .dsh-suoming-l0-ink,html[data-dsh-suoming] .dsh-suoming-l1-fog,html[data-dsh-suoming] .dsh-suoming-l2-breath,html[data-dsh-suoming] .dsh-suoming-l2-state,html[data-dsh-suoming] .dsh-suoming-l3-rotate,html[data-dsh-suoming] .dsh-suoming-l3-breathe,html[data-dsh-suoming] .dsh-suoming-l3-chain,html[data-dsh-suoming] .dsh-suoming-umbrella-sector,html[data-dsh-suoming] .dsh-suoming-umbrella-rib,html[data-dsh-suoming] .dsh-suoming-umbrella-rim,html[data-dsh-suoming] .dsh-suoming-umbrella-hinge,html[data-dsh-suoming] .dsh-chain-flow-a,html[data-dsh-suoming] .dsh-chain-flow-b,html[data-dsh-suoming] .dsh-electro-arc{animation:none;transition:none;transform:none}html[data-dsh-suoming] .dsh-suoming-scene[data-state="hover"] .dsh-suoming-l2-state,html[data-dsh-suoming] .dsh-suoming-scene[data-state="thinking"] .dsh-suoming-l2-state,html[data-dsh-suoming] .dsh-suoming-scene[data-state="generating"] .dsh-suoming-l2-state,html[data-dsh-suoming] .dsh-suoming-scene[data-state="error"] .dsh-suoming-l2-state{transform:none}html[data-dsh-suoming] .dsh-suoming-dialogue,html[data-dsh-suoming] .dsh-suoming-dialogue[data-visible="true"]{transition:opacity 120ms linear;transform:none}}',
+        /* 安全兜底（必须放在最后）：主题属性一旦丢失，插件注入的图层必须整体隐藏。
+         * 否则裸 <img> 会以原图尺寸（官方长立绘可达 2160×3840）铺满整个屏幕，
+         * 表现为"停留一段时间后整屏被一张长图盖住"，且只能重启 DSH 恢复。 */
+        'html:not([data-dsh-suoming]) .dsh-suoming-scene-host,',
+        'html:not([data-dsh-suoming]) .dsh-suoming-right-art,',
+        'html:not([data-dsh-suoming]) .dsh-suoming-side-art,',
+        'html:not([data-dsh-suoming]) .dsh-suoming-global,',
+        'html:not([data-dsh-suoming]) .dsh-suoming-ambient,',
+        'html:not([data-dsh-suoming]) .dsh-suoming-corner-lock,',
+        'html:not([data-dsh-suoming]) .dsh-suoming-pulse,',
+        'html:not([data-dsh-suoming]) .dsh-suoming-dialogue{display:none}',
       ].join('\n');
     }
 
@@ -1942,6 +1954,25 @@ window.__ModuleLoader__.load({
     function installActiveAttribute(ctx, face) {
       ctx.effect(() => {
         let retry = undefined;
+        /* 主题关闭时必须把注入的图层一并摘掉。
+         * 图层样式全部挂在 html[data-dsh-suoming] 之下，属性一没，裸 <img> 就以原图
+         * 尺寸参与布局 —— 官方长立绘会直接盖住整个界面，且不会自行恢复。 */
+        const purgeInjectedLayers = () => {
+          if (typeof document === 'undefined') return;
+          const selector = [
+            '.dsh-suoming-scene-host',
+            '.dsh-suoming-right-art',
+            '.dsh-suoming-side-art',
+            '.dsh-suoming-global',
+          ].join(',');
+          document.documentElement.removeAttribute('data-dsh-suoming-global');
+          const stale = document.querySelectorAll(selector);
+          for (let i = 0; i < stale.length; i += 1) {
+            const el = stale[i];
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+          }
+        };
+
         const sync = () => {
           const enabled = face.enabled();
           if (enabled) {
@@ -1950,6 +1981,7 @@ window.__ModuleLoader__.load({
           } else {
             document.documentElement.removeAttribute(THEME_ATTR);
             if (document.body) document.body.removeAttribute(THEME_ATTR);
+            purgeInjectedLayers();
           }
           /* 客户端模块可能在 <body> 出现前就 apply：稍后再补一次属性 */
           if (document.body === null || document.body === undefined) {
@@ -1963,7 +1995,20 @@ window.__ModuleLoader__.load({
         };
         sync();
         const off = face.subscribe(sync);
+        /* 宿主重绘 html 属性（或外部插件改写）时主题属性可能被抹掉：
+         * 图层样式全部依赖它，丢了就会退化成未样式化的裸图。这里做自愈。 */
+        let observer = undefined;
+        if (typeof MutationObserver === 'function' && document.documentElement) {
+          observer = new MutationObserver(() => {
+            if (!face.enabled()) return;
+            if (document.documentElement.hasAttribute(THEME_ATTR)) return;
+            document.documentElement.setAttribute(THEME_ATTR, '');
+            if (document.body) document.body.setAttribute(THEME_ATTR, '');
+          });
+          observer.observe(document.documentElement, { attributes: true, attributeFilter: [THEME_ATTR] });
+        }
         return () => {
+          if (observer !== undefined) observer.disconnect();
           if (typeof off === 'function') off();
           if (retry !== undefined) window.clearTimeout(retry);
           document.documentElement.removeAttribute(THEME_ATTR);
