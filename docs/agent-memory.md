@@ -1,14 +1,14 @@
 # Agent Memory · 锁暝主题
 
-> 最后更新：v3.5.0（官方立绘抠图 / 透明立绘浮动 / 遮挡修复）
+> 最后更新：v3.5.2（注入图层裸图泄漏修复：样式表/属性双路径 + 看门狗）
 
 ## A. 项目事实
 
 - 工作目录：`<workspace>\suoming-theme`
-- 包名：`@local/dsh-theme-suoming`；当前版本 **3.5.0**；`dsh.bundle.patch` 插入 `theme-suoming` 行。
+- 包名：`@local/dsh-theme-suoming`；当前版本 **3.5.2**；`dsh.bundle.patch` 插入 `theme-suoming` 行。
 - 宿主：DSH Desktop（Electron/Chromium）；profile `desktop`；`DSH_PROFILE_DIR` 指向 profile。
 - 入口：`index.js`（Host：`webServer` 只读素材路由 + profile 配置）；`client.js`（主题/场景/状态/台词）。
-- 构建：无构建步骤；测试：`.dev/host-smoke.mjs`、`.dev/scene-runtime.cjs`、`.dev/smoke.cjs`、`.dev/render.cjs`。
+- 构建：无构建步骤；测试：`.dev/host-smoke.mjs`、`.dev/scene-runtime.cjs`、`.dev/smoke.cjs`、`.dev/render.cjs`、`.dev/overlay-guard.cjs`（需本机 Chrome）、`.dev/layer-lifecycle.cjs`。
 - 关键宿主依据：
   - `webServer.register({kind:'prefix'|'exact', path, handler})`；prefix 路径不带尾斜杠；返回 disposer；Host 用 `ctx.effect`。
   - profile 配置：`$DSH_PROFILE_DIR/suoming-theme/config.json`，临时文件 + rename 原子替换。
@@ -68,3 +68,11 @@
 
 - 2026-11-05：v3.5.0 作为阶段稳定基线固化；产品功能冻结，仅做 Git 版本化与文档一致性收尾。
 - 回溯：v3.4.0 备份目录与压缩包保存在 `suoming-theme-dev/backups/`。
+
+## v3.5.2 补记 · 注入图层裸图泄漏
+
+- 现象：GUI 停留久了整屏被一张长图盖住，只能重启 DSH。
+- 根因两条：(1) `html[data-dsh-suoming]` 属性被宿主/主题回退抹掉；(2) `<style>` 由 `ctx.effect` 清理，但命令式注入的装饰节点没有清理逻辑 —— 节点比样式表活得久，裸 `<img>` 以 2160×3840 原图尺寸进入文档流。
+- 修复：兜底规则改为 `html:not([data-dsh-suoming]) .dsh-suoming-scene{display:none}`；`purgeInjectedLayers()` 提升为模块级并与 `installStyles` 同生命周期；新增 `installLayerWatchdog()`（每 2s 检查图层 computed `position`，退化为 `static` 即摘除并置 `layersBlocked`）。
+- 教训：清理清单里绝不能出现宿主容器的类 —— v3.5.1 把 `.dsh-suoming-scene-host` 当自己的节点删，等于把应用容器从 DOM 里摘掉。
+- 文档：`docs/ui-overlay-leak-fix.md`。

@@ -163,7 +163,7 @@ if (process.env.SUOMING_DUMP_CSS) {
 checks.push(['css braces balanced', (css.match(/\{/g) || []).length === (css.match(/\}/g) || []).length]);
 checks.push(['decoration scoped', css.includes('html[data-dsh-suoming]') && css.includes('[data-slot="sidebar"]')]);
 checks.push(['fallback token layer', css.includes('html[data-dsh-suoming] body[data-dsh-suoming]{--dsw-alias-bg-base:#0d0c0e;')]);
-checks.push(['build marker token', tokens['--dsh-suoming-build'] === '3.5.1']);
+checks.push(['build marker token', tokens['--dsh-suoming-build'] === '3.5.2']);
 checks.push(['chain texture present', css.includes('data:image/svg+xml')]);
 checks.push(['row styles present', css.includes('.dsh-suoming-row')]);
 checks.push(['quote styles present', css.includes('.dsh-suoming-quote')]);

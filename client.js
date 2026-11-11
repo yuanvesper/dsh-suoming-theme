@@ -380,7 +380,7 @@ window.__ModuleLoader__.load({
       '--dsh-suoming-accent-soft': tintVar('--dsw-alias-state-business-primary', P.inkBright, 32),
 
       /* 构建标记与 color-mix 诊断（仅名称可被运行时检查） */
-      '--dsh-suoming-build': '3.5.1',
+      '--dsh-suoming-build': '3.5.2',
       ...(CAN_COLOR_MIX
         ? { '--dsh-suoming-mode-color-mix': '1' }
         : { '--dsh-suoming-mode-rgba': '1' }),
@@ -986,7 +986,7 @@ window.__ModuleLoader__.load({
         /* 安全兜底（必须放在最后）：主题属性一旦丢失，插件注入的图层必须整体隐藏。
          * 否则裸 <img> 会以原图尺寸（官方长立绘可达 2160×3840）铺满整个屏幕，
          * 表现为"停留一段时间后整屏被一张长图盖住"，且只能重启 DSH 恢复。 */
-        'html:not([data-dsh-suoming]) .dsh-suoming-scene-host,',
+        'html:not([data-dsh-suoming]) .dsh-suoming-scene,',
         'html:not([data-dsh-suoming]) .dsh-suoming-right-art,',
         'html:not([data-dsh-suoming]) .dsh-suoming-side-art,',
         'html:not([data-dsh-suoming]) .dsh-suoming-global,',
@@ -1000,6 +1000,70 @@ window.__ModuleLoader__.load({
     const CSS = buildCSS() + '\n' + buildTokenCSS() + '\n' + buildSkinCSS();
     const STYLE_KEY = PKG + '/suoming.css';
 
+    /* ---------------------------------------------------------------- *
+     * 注入图层清理
+     * 图层样式全部挂在 html[data-dsh-suoming] 之下。只要 <style> 或属性任一消失，
+     * 裸 <img> 就会以原图尺寸参与布局（官方长立绘 2160×3840），盖住整个界面，
+     * 且不会自行恢复 —— 用户侧表现为"停留久了整屏被长图覆盖，只能重启 DSH"。
+     * 因此图层节点必须与样式表同生命周期：样式表一撤，节点立即摘除。
+     * 注意：只摘插件自己注入的 .dsh-suoming-scene，绝不碰承载它的宿主容器
+     * （div:has(> [data-slot="main"]) 会带 .dsh-suoming-scene-host 类）。
+     * ---------------------------------------------------------------- */
+    const LAYER_SELECTOR = Object.freeze([
+      '.dsh-suoming-scene',
+      '.dsh-suoming-right-art',
+      '.dsh-suoming-side-art',
+      '.dsh-suoming-global',
+      '.dsh-suoming-ambient',
+      '.dsh-suoming-corner-lock',
+    ].join(','));
+
+    let layersBlocked = false;
+
+    function purgeInjectedLayers() {
+      if (typeof document === 'undefined') return;
+      document.documentElement.removeAttribute('data-dsh-suoming-global');
+      if (typeof document.querySelectorAll !== 'function') return;
+      const nodes = document.querySelectorAll(LAYER_SELECTOR);
+      if (!nodes || typeof nodes[Symbol.iterator] !== 'function') return;
+      for (const node of nodes) {
+        if (node && node.parentNode) node.parentNode.removeChild(node);
+      }
+    }
+
+    /* 看门狗：注入图层的每一类都必然是 fixed / absolute。
+     * 一旦某个图层退化成 static（说明对应的样式规则没生效 —— 样式表被换掉、
+     * 类名被改写等），它就会以原图尺寸参与普通文档流并盖住整屏。
+     * 这里不依赖任何已知成因，只守"图层不得进入文档流"这一条不变量。 */
+    function installLayerWatchdog(ctx) {
+      ctx.effect(() => {
+        const host = typeof window !== 'undefined' ? window : undefined;
+        const setTimer = host && typeof host.setInterval === 'function' ? host.setInterval.bind(host) : undefined;
+        const clearTimer = host && typeof host.clearInterval === 'function' ? host.clearInterval.bind(host) : undefined;
+        const getStyle = host && typeof host.getComputedStyle === 'function' ? host.getComputedStyle.bind(host) : undefined;
+        if (!setTimer || !getStyle || typeof document === 'undefined' || typeof document.querySelectorAll !== 'function') {
+          return undefined;
+        }
+        const tick = () => {
+          const nodes = document.querySelectorAll(LAYER_SELECTOR);
+          for (const node of nodes) {
+            if (!node || !node.isConnected) continue;
+            const computed = getStyle(node);
+            if (!computed || computed.position !== 'static') continue;
+            layersBlocked = true;
+            purgeInjectedLayers();
+            console.warn('[suoming-theme] 注入图层失去样式（position:static），已移除以免覆盖界面');
+            return;
+          }
+        };
+        const timer = setTimer(tick, 2000);
+        return () => {
+          if (clearTimer) clearTimer(timer);
+          layersBlocked = false;
+        };
+      }, 'suoming: layer watchdog');
+    }
+
     function installStyles(ctx) {
       ctx.effect(() => {
         if (typeof document === 'undefined') return undefined;
@@ -1010,6 +1074,9 @@ window.__ModuleLoader__.load({
         document.head.appendChild(tag);
         return () => {
           tag.remove();
+          /* 样式表被撤掉（插件卸载 / 主题重挂载）时，注入的图层必须一起消失，
+           * 否则会退化成未样式化的裸图铺满屏幕。 */
+          purgeInjectedLayers();
         };
       }, 'suoming: theme stylesheet');
     }
@@ -1345,7 +1412,7 @@ window.__ModuleLoader__.load({
       let cornerLock = null;
       let ambient = null;
       const ensureCornerLock = () => {
-        if (!mounted || !document.body || (cornerLock && cornerLock.isConnected)) return;
+        if (layersBlocked || !mounted || !document.body || (cornerLock && cornerLock.isConnected)) return;
         const holder = document.createElement('div');
         holder.innerHTML = '<div class="dsh-suoming-corner-lock" aria-hidden="true"></div>';
         cornerLock = holder.firstElementChild;
@@ -1353,7 +1420,7 @@ window.__ModuleLoader__.load({
       };
 
       const ensureAmbient = () => {
-        if (!mounted || !document.body || (ambient && ambient.isConnected)) return;
+        if (layersBlocked || !mounted || !document.body || (ambient && ambient.isConnected)) return;
         const holder = document.createElement('div');
         holder.innerHTML = '<div class="dsh-suoming-ambient" aria-hidden="true"><div class="dsh-suoming-ambient-ink">' + INK_WASH_SVG + '</div><div class="dsh-suoming-ambient-umbrella">' + UMBRELLA_SVG + '</div></div>';
         ambient = holder.firstElementChild;
@@ -1361,7 +1428,7 @@ window.__ModuleLoader__.load({
       };
 
       const ensureRightArt = () => {
-        if (!mounted || rightArt?.isConnected) return;
+        if (layersBlocked || !mounted || rightArt?.isConnected) return;
         const hostMount = document.body;
         if (!hostMount) return;
         const holder = document.createElement('div');
@@ -1374,7 +1441,7 @@ window.__ModuleLoader__.load({
       };
 
       const ensureSidebarArt = () => {
-        if (!mounted || sideArt?.isConnected) return;
+        if (layersBlocked || !mounted || sideArt?.isConnected) return;
         const sidebar = document.querySelector('[data-slot="sidebar"] > div');
         if (!sidebar) return;
         const holder = document.createElement('div');
@@ -1387,7 +1454,7 @@ window.__ModuleLoader__.load({
       };
 
       const ensureGlobalPortrait = () => {
-        if (!mounted || !document.body) return;
+        if (layersBlocked || !mounted || !document.body) return;
         const mount = document.querySelector('.dsh-suoming-scene-host') || document.querySelector('div:has(> [data-slot="main"])') || document.body;
         if (globalLayer && !globalLayer.isConnected) { globalLayer = null; }
         if (globalLayer) {
@@ -1415,7 +1482,7 @@ window.__ModuleLoader__.load({
         ensureCornerLock();
         ensureRightArt();
         ensureGlobalPortrait();
-        if (!mounted || scene?.isConnected) return;
+        if (layersBlocked || !mounted || scene?.isConnected) return;
         let candidate = document.querySelector('div:has(> [data-slot="main"])');
         if (!candidate) { const mainSlot = document.querySelector('[data-slot="main"]'); candidate = mainSlot && mainSlot.parentElement; }
         if (!candidate) {
@@ -1954,24 +2021,8 @@ window.__ModuleLoader__.load({
     function installActiveAttribute(ctx, face) {
       ctx.effect(() => {
         let retry = undefined;
-        /* 主题关闭时必须把注入的图层一并摘掉。
-         * 图层样式全部挂在 html[data-dsh-suoming] 之下，属性一没，裸 <img> 就以原图
-         * 尺寸参与布局 —— 官方长立绘会直接盖住整个界面，且不会自行恢复。 */
-        const purgeInjectedLayers = () => {
-          if (typeof document === 'undefined') return;
-          const selector = [
-            '.dsh-suoming-scene-host',
-            '.dsh-suoming-right-art',
-            '.dsh-suoming-side-art',
-            '.dsh-suoming-global',
-          ].join(',');
-          document.documentElement.removeAttribute('data-dsh-suoming-global');
-          const stale = document.querySelectorAll(selector);
-          for (let i = 0; i < stale.length; i += 1) {
-            const el = stale[i];
-            if (el && el.parentNode) el.parentNode.removeChild(el);
-          }
-        };
+        /* 主题关闭时必须把注入的图层一并摘掉（与样式表同生命周期，见 purgeInjectedLayers）。 */
+        const purgeLayers = purgeInjectedLayers;
 
         const sync = () => {
           const enabled = face.enabled();
@@ -1981,7 +2032,7 @@ window.__ModuleLoader__.load({
           } else {
             document.documentElement.removeAttribute(THEME_ATTR);
             if (document.body) document.body.removeAttribute(THEME_ATTR);
-            purgeInjectedLayers();
+            purgeLayers();
           }
           /* 客户端模块可能在 <body> 出现前就 apply：稍后再补一次属性 */
           if (document.body === null || document.body === undefined) {
@@ -2378,6 +2429,7 @@ window.__ModuleLoader__.load({
      * ---------------------------------------------------------------- */
     function apply(ctx) {
       installStyles(ctx);
+      installLayerWatchdog(ctx);
       installGlassFilter(ctx);
       installGlassPointer(ctx);
       installMotionPause(ctx);
