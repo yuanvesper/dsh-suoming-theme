@@ -70,7 +70,7 @@ const index = {
       repository: { url: repoUrl },
       metadata: {
         category: 'theme',
-        keywords: ['dsh-plugin', 'deepseek-harness', 'theme', 'wuthering-waves', 'suoming'],
+        keywords: ['dsh-plugin', 'deepseek-harness', 'dsh-theme', 'theme', 'wuthering-waves', 'mingchao', 'suoming'],
         labels: ['wuthering-waves', 'dark', 'ui-skin'],
         sortKeys: { updated: timestamp },
       },
